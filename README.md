@@ -42,13 +42,7 @@ jupyter lab
 
 Open `notebooks/market_opportunity_analysis.ipynb` and run the cells in order. The notebook calls the same modular pipeline used by tests.
 
-For a repeatable non-notebook run:
-
-```powershell
-python -m src.run_pipeline --config config/default_config.yaml
-```
-
-The first run downloads OSM data and stores immutable snapshots plus retrieval metadata under `data/raw/`. Subsequent runs can reuse those snapshots. Do not commit full raw OSM extracts unless their redistribution obligations have been reviewed.
+The notebook is deliberately the primary execution interface. It validates the configuration before a live run, documents each stage, and directs results to the standard output paths. The first live retrieval stores immutable snapshots plus retrieval metadata under `data/raw/`. Do not commit full raw OSM extracts unless their redistribution obligations have been reviewed.
 
 ## Outputs
 
