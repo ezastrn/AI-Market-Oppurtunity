@@ -1,0 +1,1102 @@
+================================================================================
+PRODUCT REQUIREMENTS DOCUMENT (PRD)
+AI MARKET OPPORTUNITY INTELLIGENCE
+================================================================================
+
+Version        : 1.1 (revision of v1.0)
+Status         : Ready for implementation (pending owner decisions in Section 20)
+Project type   : Geospatial data analytics / market opportunity screening
+Study area     : Malang City, East Java, Indonesia
+Document owner : Project Owner (student portfolio project)
+Primary reader : AI coding agent (implementer) and the Project Owner (reviewer)
+
+--------------------------------------------------------------------------------
+HOW TO READ THIS DOCUMENT (INSTRUCTIONS FOR THE AI AGENT)
+--------------------------------------------------------------------------------
+1. This document is the single source of truth for the project. Read it fully
+   before writing any code.
+2. Requirement keywords:
+     MUST / MUST NOT   = mandatory
+     SHOULD            = strongly recommended; deviation needs a logged reason
+     MAY               = optional
+3. Priority tags used on requirements:
+     [MUST]   = required for MVP acceptance
+     [SHOULD] = implement if time permits after all [MUST] items are verified
+     [COULD]  = only after MVP is accepted
+4. Every numeric value labelled "INITIAL VALUE" is a starting point, NOT a
+   validated truth. It MUST be placed in the config file, MUST be documented,
+   and MAY be changed after inspecting the real data. Record every change in
+   docs/decision_log.md with the reason.
+5. Never mark anything "done" without execution evidence (command output, test
+   result, generated file). See Section 9 (Agent Operating Rules).
+6. If this document is ambiguous or two sections conflict, do NOT guess
+   silently. Make the most conservative choice, log it in
+   docs/decision_log.md, and flag it in your final summary.
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+ 1. Product Overview
+ 2. Objectives and Success Criteria
+ 3. Target Users
+ 4. Scope (MVP, Out of Scope, Future)
+ 5. Study Area and Configuration
+ 6. Data Requirements
+ 7. Analytical Methodology
+ 8. Confidence, Sufficiency and Robustness
+ 9. AI Agent Operating Rules
+10. Functional Requirements (with priority)
+11. Non-Functional Requirements
+12. Technical Architecture
+13. User Workflow
+14. Output Requirements
+15. Acceptance Criteria
+16. Testing Strategy
+17. Risks and Mitigation
+18. Delivery Plan
+19. Glossary
+20. Open Decisions for the Project Owner
+21. Revision History
+
+================================================================================
+1. PRODUCT OVERVIEW
+================================================================================
+
+1.1 Description
+---------------
+AI Market Opportunity Intelligence is a reproducible, data-driven workflow for
+PRELIMINARY market opportunity screening. It analyses the geographic
+distribution of businesses, public facilities and points of interest from
+OpenStreetMap (OSM) to identify areas that show (a) relatively low OBSERVED
+competitor coverage and (b) relevant supporting context, and therefore deserve
+further investigation.
+
+Outputs: interactive map, quantitative indicators, ranked candidate areas,
+explainable scores, and a structured market intelligence report.
+
+The system MUST always distinguish between:
+  - OBSERVED DATA      (what the dataset actually contains)
+  - ANALYTICAL ESTIMATES (what is computed from the data under stated assumptions)
+  - HYPOTHESES         (what still requires real-world validation)
+
+1.2 What "AI" means in this project
+-----------------------------------
+The analytical core is classical spatial analytics (GIS, distance and density
+metrics, weighted scoring). It is NOT a machine learning prediction model.
+"AI" refers to the role of the AI coding agent, which assists with research,
+implementation, analysis interpretation and report drafting. All reports and
+documentation MUST state this clearly so readers are not misled about the
+method.
+
+1.3 Problem Statement
+---------------------
+Business location decisions are often made from intuition or incomplete
+competitor information. This leads to entering saturated areas, overlooking
+possibly underserved areas, and difficulty turning raw geographic data into
+actionable recommendations. This project provides a repeatable workflow for
+preliminary, evidence-based screening.
+
+1.4 Vision
+----------
+Turn public geographic data into understandable, explainable and honestly
+qualified market intelligence that tells users where further research is
+worthwhile and why.
+
+1.5 Core Value Proposition
+--------------------------
+The product does not merely plot businesses. It evaluates spatial patterns,
+compares candidate areas, explains what drives each ranking, reports how much
+the evidence can be trusted, and states its limitations explicitly.
+
+1.6 Fundamental Interpretation Rule
+-----------------------------------
+A high opportunity score means: "low OBSERVED competition in OSM, plus
+supporting context, in an area that passes basic suitability filters." It does
+NOT mean demand, revenue, profit or business success. No output may state or
+imply otherwise.
+
+================================================================================
+2. OBJECTIVES AND SUCCESS CRITERIA
+================================================================================
+
+2.1 Objectives
+--------------
+O1. Collect and process public geospatial data for a defined study area.
+O2. Identify and classify businesses of one selected category.
+O3. Measure competitor concentration, proximity and distribution.
+O4. Identify eligible candidate areas with relatively low observed competition
+    and relevant context.
+O5. Rank candidates with a transparent, configurable scoring method.
+O6. Visualize results on an interactive map with supporting charts.
+O7. Generate a structured report with findings, recommendations and limits.
+O8. Ensure every finding is traceable to data and documented assumptions.
+
+2.2 Success Criteria
+--------------------
+The project succeeds when ALL of the following hold:
+  - Data collection and processing can be repeated from documented steps.
+  - The user can change study area, category and parameters via configuration.
+  - The pipeline produces a valid cleaned dataset and an interactive map.
+  - Candidate areas have explainable scores, ranks and data-sufficiency labels.
+  - At least 3 evidence-based candidate areas are produced when the sufficiency
+    gates (Section 8.1) pass; otherwise the system explicitly reports
+    "insufficient data" and produces NO ranking.
+  - Every major recommendation cites measurable indicators.
+  - The report separates facts, interpretations and hypotheses.
+  - A new user can reproduce the analysis from the README.
+
+================================================================================
+3. TARGET USERS
+================================================================================
+Primary   : Business or product analyst (needs defensible, comparable results).
+Secondary : Consultant (needs concise findings, visuals, practical advice).
+Tertiary  : Small business decision-maker (needs preliminary location insight
+            before investing in deeper research).
+Owner     : A student building an applied data analytics and AI portfolio
+            project. The result should show technical competence, analytical
+            reasoning, product thinking and business communication.
+
+================================================================================
+4. SCOPE
+================================================================================
+
+4.1 MVP (in scope)
+------------------
+  - One study area: Malang City, East Java, Indonesia.
+  - One configurable business category per run.
+  - Data retrieval from OpenStreetMap via a verified public interface.
+  - Cleaning, deduplication, category normalization.
+  - Distance calculations in a projected CRS.
+  - Competitor density and proximity indicators.
+  - Eligibility filtering of candidate cells (Section 7.3).
+  - Explainable opportunity scoring and ranking.
+  - Sufficiency/confidence labelling and basic robustness checks.
+  - Interactive map, supporting charts, summary statistics.
+  - CSV export of cleaned data and ranking.
+  - Structured market intelligence report.
+  - Documentation of sources, method, assumptions, limitations.
+The MVP is an analytical prototype, not a production commercial platform.
+
+4.2 Out of Scope (MVP)
+----------------------
+The MVP MUST NOT:
+  - Conduct interviews, surveys or field research.
+  - Claim to know sales, profit, customer demand or willingness to pay.
+  - Declare any location commercially viable.
+  - Use private databases or unauthorized data.
+  - Scrape sites against their terms or access restrictions.
+  - Make autonomous financial or investment decisions.
+  - Guarantee business success.
+  - Require paid cloud services or paid AI APIs.
+  - Build a SaaS platform, authentication or multi-user administration.
+  - Present synthetic data as real-world findings.
+
+4.3 Future Enhancements (after MVP acceptance only) [COULD]
+-----------------------------------------------------------
+  - Population/demographic indicators (e.g., official BPS statistics).
+  - Travel-time or public-transport accessibility.
+  - Rental price indicators from lawful public sources.
+  - Multi-category comparison.
+  - Historical change analysis.
+  - Demand proxies from credible public datasets.
+  - AI-generated natural-language report drafting inside the pipeline.
+  - Lightweight web dashboard.
+These MUST NOT delay MVP delivery.
+
+================================================================================
+5. STUDY AREA AND CONFIGURATION
+================================================================================
+
+5.1 Default Study Area
+----------------------
+  - Area: Kota Malang (Malang City), East Java, Indonesia.
+  - Boundary: administrative boundary from OSM (relation) or an authoritative
+    open dataset. The agent MUST verify it (Section 6.5) and document the
+    source, admin level, retrieval date and any discrepancy.
+  - Default data source: OpenStreetMap.
+  - Analysis type: exploratory market opportunity screening.
+
+5.2 Business Category Selection (data-driven, not hardcoded)
+------------------------------------------------------------
+The category MUST be configurable. For the final analysis the agent MUST choose
+the category using this procedure in Phase 1:
+
+  Candidate categories to test (OSM tag mapping, extend if useful):
+    - Coffee shop / cafe     : amenity=cafe (and cuisine=coffee_shop)
+    - Laundry                : shop=laundry, shop=dry_cleaning
+    - Convenience store      : shop=convenience
+    - Pharmacy               : amenity=pharmacy
+    - Restaurant             : amenity=restaurant
+
+  Selection rule (INITIAL VALUES, configurable):
+    - Cleaned record count >= 30 for the category.
+    - Records located in at least 4 of the 5 districts (kecamatan) of Malang:
+      Klojen, Blimbing, Kedungkandang, Sukun, Lowokwaru.
+    - Preference order among qualifying categories: the one with higher record
+      count and clearer tag semantics; ties broken in favor of the category
+      with a clearer, documented context-indicator rationale.
+  If no candidate qualifies, report this and propose the best-supported
+  alternative with documented reasoning. Do NOT proceed with a category that
+  fails the rule without logging an explicit override and its justification.
+
+5.3 Configuration Parameters
+----------------------------
+All parameters below MUST live in config/default_config.yaml and be
+overridable. Initial values are starting points to be reviewed after inspecting
+the data distribution.
+
+  study_area.name                    : "Kota Malang"
+  study_area.boundary_buffer_m       : 1000   (INITIAL; competitor retrieval
+                                      buffer to reduce edge effects, see 7.2)
+  category.name                      : chosen via 5.2
+  category.osm_tags                  : mapping of normalized category to tags
+  crs.projected                      : EPSG:32749 (WGS 84 / UTM zone 49S),
+                                      to be verified as appropriate for Malang
+  grid.cell_size_m                   : 500    (INITIAL)
+  grid.sensitivity_sizes_m           : [250, 500, 1000]
+  grid.min_inside_fraction           : 0.5    (INITIAL; cell must lie at least
+                                      50% inside the boundary)
+  competitor.radius_m                : 500    (INITIAL)
+  competitor.sensitivity_radii_m     : [300, 500, 1000]
+  context.radius_m                   : 500    (INITIAL)
+  context.features                   : category-specific list (see 7.4)
+  eligibility.*                      : see 7.3
+  sufficiency.min_competitors        : 30     (INITIAL; see 8.1)
+  sufficiency.min_eligible_cells     : 50     (INITIAL)
+  scoring.normalization              : "winsorized_minmax" (default), with
+                                      winsor percentiles 5 and 95
+  scoring.weights                    : {competition_gap: 0.34,
+                                        contextual_suitability: 0.33,
+                                        accessibility: 0.33}  (baseline,
+                                        approx. equal; sums to 1)
+  scoring.weight_scenarios           : see 8.3
+  ranking.top_n                      : 10     (INITIAL)
+  report.language                    : "en" (alternative: "id"; see Section 20)
+  random_seed                        : 42     (for any nondeterministic step)
+
+5.4 Validation of configuration
+-------------------------------
+At startup the pipeline MUST validate the config: weights sum to 1 (tolerance
+1e-6), all radii and sizes positive, CRS is projected, category has a tag
+mapping. Invalid config MUST stop the run with a clear error message.
+
+================================================================================
+6. DATA REQUIREMENTS
+================================================================================
+
+6.1 Primary Source: OpenStreetMap
+---------------------------------
+Retrieve (as relevant to the category):
+  - Businesses in the selected category.
+  - Complementary businesses and points of interest (context features).
+  - Public facilities relevant to the category.
+  - Road network (at least highway classes needed for accessibility).
+  - Buildings and/or land-use polygons (needed for the eligibility filter).
+  - Administrative boundary (city and, if available, districts).
+
+Access method: Overpass API or OSMnx (or a regional extract such as one from
+Geofabrik if API limits block retrieval). Before choosing, the agent MUST:
+  - Check that the endpoint is currently reachable (execute a test request).
+  - Review current usage policy and rate limits.
+  - Choose a method, and document the reason in docs/decision_log.md.
+Large queries SHOULD be cached to data/raw/. Do not hammer public endpoints.
+
+6.2 Optional Secondary Sources [COULD]
+--------------------------------------
+Use only if they add clear analytical value and can be accessed lawfully and
+reproducibly (e.g., BPS population statistics, open administrative boundaries).
+Secondary data MUST NOT be fabricated or assumed to exist. If not retrieved,
+state that in the report.
+
+6.3 Normalized Business Dataset Fields
+--------------------------------------
+  feature_id          Stable source identifier (e.g., OSM type + id)
+  name                Name if available (nullable)
+  category            Normalized category
+  latitude            WGS84 latitude (of the representative point)
+  longitude           WGS84 longitude (of the representative point)
+  source              Original data source
+  source_tags         Relevant original tags (e.g., JSON string)
+  retrieved_at        Retrieval timestamp (ISO 8601, with timezone)
+  geometry_type       point / polygon / other
+  district            District (kecamatan) assigned by spatial join, if known
+  data_quality_flag   One or more flags (see 6.4)
+
+Polygon features (e.g., a shop mapped as a building outline) MUST be converted
+to a representative point (inside the polygon) for analysis. The original
+geometry_type MUST be preserved in the record.
+
+6.4 Data Quality Rules
+----------------------
+The pipeline MUST:
+  1. Remove invalid or empty geometries and out-of-range coordinates.
+  2. Flag/remove records outside the study boundary (documented separately
+     from the boundary buffer used for competitor retrieval).
+  3. Detect duplicates using these ordered rules:
+       a. Identical source identifier -> duplicate.
+       b. Same normalized name AND same category AND distance <= 30 m
+          (INITIAL, configurable) -> probable duplicate; keep one, log merge.
+       c. A polygon and a point of the same category within 30 m with the
+          same/missing name -> probable duplicate; prefer the record with more
+          complete attributes.
+     Unnamed records MUST NOT be deduplicated by name alone.
+  4. Normalize tags to categories using the documented mapping.
+  5. Keep unnamed records (flag them as "missing_name"); document treatment.
+  6. Record missing or ambiguous attributes via data_quality_flag.
+  7. Report counts: retrieved, invalid removed, outside boundary, duplicates
+     merged, retained.
+  8. Preserve source identifiers for traceability.
+  9. Never interpret absence of OSM records as absence of real businesses.
+
+6.5 Boundary Verification
+-------------------------
+The agent MUST verify the Kota Malang boundary: confirm the relation/admin
+level, that the geometry is valid and a single coherent area (or documented
+multipolygon), and sanity-check its area against publicly reported city area
+(approximately 110 km2; accept within about +/-10% or document why not).
+Record the source and retrieval date. If the OSM boundary is unsuitable, use a
+documented alternative.
+
+6.6 Data Integrity and Storage
+------------------------------
+  - data/raw/        : untouched source snapshots + retrieval metadata file
+                       (query, endpoint, timestamp, software versions).
+  - data/processed/  : cleaned datasets.
+  - data/outputs/    : indicators, scores, rankings, maps, charts.
+  - Raw data MUST NOT be modified after retrieval.
+  - Respect OSM license: data is (c) OpenStreetMap contributors, ODbL. The
+    README, map and report MUST include this attribution. Check redistribution
+    terms before committing any dataset to a public repository; prefer
+    committing code + retrieval scripts and a small sample over large raw dumps.
+
+6.7 Known Data Limitations (must be disclosed in the report)
+-----------------------------------------------------------
+OSM is a community-maintained map, not a complete registry of operating
+businesses. Coverage varies by area and category; closed businesses may remain
+mapped; open ones may be missing; tagging is inconsistent. Building and
+land-use coverage may also be incomplete, which affects the eligibility filter.
+
+================================================================================
+7. ANALYTICAL METHODOLOGY
+================================================================================
+
+7.1 Geographic Preprocessing
+----------------------------
+  - Reproject all layers to the projected CRS (config: crs.projected) before
+    any distance or area computation. NEVER compute local distances using
+    Euclidean distance on raw latitude/longitude.
+  - Build a regular square grid over the boundary in the projected CRS with
+    cell size grid.cell_size_m. Keep cells with at least
+    grid.min_inside_fraction of their area inside the boundary. Clip or flag
+    partial cells, and document the handling.
+  - Each cell has a stable ID and a centroid. Distances are measured from the
+    cell centroid unless stated otherwise.
+  - Keep the distinction clear: existing business locations are POINTS; grid
+    cells are AREAS used to summarize surroundings. A cell is NOT a verified
+    business address.
+
+7.2 Competition Indicators
+--------------------------
+Competitors are mapped businesses of the selected category. To limit edge
+effects, competitors are counted from the study area PLUS boundary_buffer_m
+around it, while candidate cells remain only inside the boundary.
+
+For each cell compute:
+  C1. competitor_count      : competitors within competitor.radius_m of the
+                              cell centroid.
+  C2. competitor_density    : C1 divided by the search circle area (per km2).
+  C3. nearest_competitor_m  : distance to nearest mapped competitor.
+  C4. mean_nearest_k_m      : mean distance to nearest k competitors
+                              (k = 3, INITIAL), only if at least k exist.
+
+Primary competition inputs for scoring: C1 and C3. C2 and C4 are reported as
+supporting statistics. These describe MAPPED competitor distribution, not true
+market saturation.
+
+7.3 Eligibility Filter (prevents "empty land" false opportunities)
+------------------------------------------------------------------
+Low competition can simply mean nobody lives or works there (farmland, forest,
+cemetery, industrial or military zones, water). Therefore a cell MUST pass an
+eligibility filter BEFORE it can be ranked. Cells failing it remain on the map
+(greyed) but are NOT ranked.
+
+A cell is ELIGIBLE if all of these hold (INITIAL VALUES, configurable):
+  E1. Inside-boundary fraction >= grid.min_inside_fraction.
+  E2. Built-environment evidence, satisfied by AT LEAST ONE of:
+        a. OSM building count in the cell >= 20, OR
+        b. Share of cell area in residential/commercial/retail land use >= 20%,
+           OR
+        c. Total mapped road length in the cell >= a threshold chosen from the
+           road-length distribution (e.g., the 25th percentile of cells that
+           contain buildings).
+  E3. Share of cell area in excluded land use (farmland, forest, cemetery,
+      industrial, military, reservoir/water) < 50%.
+
+The agent MUST inspect the distributions first and may adjust thresholds, with
+justification logged. If building/land-use coverage is too sparse in OSM to
+support E2a/E2b, fall back to E2c and disclose this as a limitation. The number
+of eligible versus ineligible cells MUST be reported.
+
+7.4 Contextual Suitability Indicators
+-------------------------------------
+Context features are category-specific and MUST each have a documented
+rationale in docs/methodology.md and config. Do not assume a feature is
+positive for every category. Example mappings (for the agent to verify against
+actual data, not fixed truths):
+
+  Coffee shop / cafe:
+    + universities, colleges, schools (amenity=university/college/school)
+    + offices, coworking (office=*, amenity=coworking_space)
+    + retail/commercial POIs (shop=*)
+  Laundry:
+    + dormitories, apartments, boarding houses (building=dormitory/apartments)
+    + universities/colleges
+    + residential building density
+  Convenience store:
+    + residential building density
+    + schools, clinics, bus stops
+  Pharmacy:
+    + clinics, hospitals (amenity=clinic/hospital/doctors)
+    + residential building density
+
+Computation:
+  - For each feature type f, count_f = number of features within
+    context.radius_m of the cell centroid.
+  - Normalize each count_f (Section 7.5) and combine into
+    Contextual Suitability using documented feature weights (INITIAL: equal
+    weights among the chosen features).
+  - If a feature type has zero records in the entire dataset, EXCLUDE that
+    feature from the combination and log it; do not treat it as zero-quality
+    or as favorable.
+  - A cell with zero context features gets a low (not missing) contextual
+    value, provided the feature types exist in the dataset.
+
+7.5 Normalization
+-----------------
+All indicators MUST be transformed to a [0, 1] scale where HIGHER ALWAYS MEANS
+MORE FAVORABLE. Default method: winsorized min-max over ELIGIBLE cells only:
+  1. Clip values to the 5th and 95th percentile (config).
+  2. Min-max scale to [0, 1].
+  3. For "lower is better" indicators (e.g., competitor_count), invert:
+     value = 1 - scaled.
+Alternative (config option): percentile rank. If an indicator has zero variance
+among eligible cells, EXCLUDE it, log it, and renormalize weights (7.7).
+The direction and transformation of every indicator MUST be documented in a
+table in docs/methodology.md.
+
+7.6 Opportunity Score
+---------------------
+Components (each in [0, 1]):
+  Competition Gap (CG)
+      CG = 0.5 * norm_up(nearest_competitor_m)
+         + 0.5 * norm_down(competitor_count)
+      (INITIAL; the 50/50 split is configurable).
+  Contextual Suitability (CS)
+      Combined normalized context counts from 7.4.
+  Accessibility (AC)
+      AC = norm_down(distance from cell centroid to the nearest road with
+           highway in {primary, secondary, tertiary}).
+      Optional supporting statistic: road length density within 500 m.
+      This is a physical connectivity proxy only, not travel time.
+
+Score (weighted average, weights sum to 1):
+  Opportunity Score = w1*CG + w2*CS + w3*AC   (scaled 0-100 for display)
+
+Baseline weights: approximately equal (0.34 / 0.33 / 0.33). The agent MUST NOT
+present these as optimal; they are a neutral baseline tested via scenarios
+(Section 8.3).
+
+Traceability: for every cell store CG, CS, AC, the raw indicator values, the
+weights used, and each component's weighted contribution to the score.
+
+7.7 Missing Indicator Handling
+------------------------------
+  - NEVER silently assign a favorable value to a missing indicator.
+  - If exactly one of CG, CS, AC cannot be computed for the whole run (e.g., no
+    context data exists): exclude it, renormalize the remaining weights to sum
+    to 1, flag the run "reduced_model" and state this in all outputs.
+  - If CG cannot be computed, OR two or more components are unavailable, mark
+    the run INSUFFICIENT and produce no ranking.
+  - Cell-level missing values: the cell is excluded from ranking and listed
+    with a reason.
+
+7.7a Ranking
+------------
+Rank ELIGIBLE cells by score (descending). Ties are broken by (1) higher CG,
+then (2) higher data sufficiency level, then (3) lower cell ID (deterministic).
+For each candidate cell report the fields listed in Section 14.4.
+
+Overlapping/adjacent top cells: to avoid presenting one hotspot as 10
+candidates, group contiguous top-ranked cells into candidate zones (documented
+rule, e.g., merge cells that share an edge and are all within the top-N), and
+rank zones by the mean or max score. If this is judged too complex for MVP,
+mark it [SHOULD] and instead present top cells with a note about clustering.
+
+================================================================================
+8. CONFIDENCE, SUFFICIENCY AND ROBUSTNESS
+================================================================================
+
+Opportunity (score) and evidence confidence are SEPARATE concepts. A cell may
+have a high score and weak evidence.
+
+8.1 Run-Level Data Sufficiency Gates (ranking is allowed only if all pass)
+--------------------------------------------------------------------------
+INITIAL VALUES, configurable:
+  G1. Cleaned competitor records >= sufficiency.min_competitors (30).
+  G2. Eligible cells >= sufficiency.min_eligible_cells (50).
+  G3. At least 2 of the 3 score components computable (see 7.7).
+  G4. Competitors present in at least 4 of 5 districts.
+If any gate fails: output "INSUFFICIENT DATA", list failed gates, and do not
+rank. Provide a recommended alternative (e.g., different category, larger
+cell size) instead of fabricating candidates.
+
+8.2 Cell-Level Data Sufficiency Label (not a percentage)
+--------------------------------------------------------
+Assign each ranked candidate a label HIGH / MEDIUM / LOW using documented,
+rule-based factors (count how many hold):
+  F1. Cell is at least one competitor-radius away from the study boundary
+      (low edge-effect risk).
+  F2. Context features have non-trivial coverage (at least 2 distinct context
+      feature types with at least 1 record inside the context radius).
+  F3. Local data completeness: at least 50% of nearby mapped businesses have
+      name and valid category tags (INITIAL).
+  F4. Rank stability: cell is in the top-N in at least 70% of robustness
+      scenarios (see 8.3).
+  Label: HIGH if 4 hold, MEDIUM if 2-3 hold, LOW if 0-1 hold.
+Do NOT output an arbitrary "confidence %". Explain each label in plain words.
+
+8.3 Robustness / Sensitivity Checks
+-----------------------------------
+Run scenarios and compare rankings:
+  S1. Competitor radius in {300, 500, 1000} m.
+  S2. Grid size in {250, 500, 1000} m (compare at zone/district level, since
+      cells differ).
+  S3. Weight scenarios:
+        baseline          (0.34, 0.33, 0.33)
+        competition-heavy (0.50, 0.30, 0.20)
+        context-heavy     (0.30, 0.50, 0.20)
+        no-accessibility  (0.50, 0.50, 0.00)
+  S4. Leave-one-out: remove each context feature in turn.
+Metrics (compute and report):
+  - Top-N overlap (Jaccard) between each scenario and the baseline.
+  - Spearman rank correlation of scores between scenarios.
+  - Per-cell "top-N frequency" across scenarios (feeds F4).
+Interpretation (INITIAL thresholds): median Jaccard >= 0.5 -> "reasonably
+stable"; 0.3 to 0.5 -> "moderately sensitive"; < 0.3 -> "highly sensitive". If
+highly sensitive, the report MUST say conclusions depend strongly on
+assumptions and downgrade recommendation strength accordingly.
+[SHOULD] for S2 and S4; [MUST] for S1 and S3.
+
+================================================================================
+9. AI AGENT OPERATING RULES
+================================================================================
+
+9.1 Responsibilities
+--------------------
+Research and planning, implementation, analysis and interpretation, reporting
+(see Sections 18 and 14).
+
+9.2 Hard Constraints (the agent MUST NOT)
+-----------------------------------------
+  - Invent records, statistics, locations or results.
+  - Claim code ran successfully without execution evidence.
+  - Claim an API is available without testing it.
+  - Treat generated text as a substitute for actual analysis.
+  - Hide errors or silently replace failed retrieval with fabricated or
+    synthetic data.
+  - Present the score as a guarantee of success.
+  - Claim high demand solely because many facilities are nearby.
+  - Claim that lack of mapped competitors proves absence of competition.
+  - Mix synthetic test data into real results (synthetic data is allowed only
+    in unit tests and must be clearly labelled and kept in tests/).
+  - Commit secrets, credentials or non-redistributable data.
+
+9.3 Verification Discipline
+---------------------------
+  - After each pipeline stage, run it and capture evidence (row counts, file
+    paths, printed summaries). Include key evidence in docs and the final
+    summary.
+  - Run tests with pytest and report the actual pass/fail output.
+  - An acceptance criterion is "met" ONLY when verified by execution,
+    inspection or test (see Section 15).
+  - Every number in the report MUST be generated from pipeline output files
+    (e.g., by a report script reading data/outputs/), never typed from memory.
+
+9.4 Logging and Decisions
+-------------------------
+Maintain docs/decision_log.md. Log: chosen access method, final category and
+why, every change to an INITIAL VALUE, threshold overrides, deviations from
+this PRD, and unresolved issues. Each entry: date, decision, reason, impact.
+
+9.5 Stop-and-Report Conditions
+------------------------------
+Stop and report to the Project Owner (do not improvise) when:
+  - The data access method fails after reasonable retries and documented
+    alternatives are exhausted.
+  - No candidate category passes the selection rule.
+  - Sufficiency gates fail.
+  - The boundary cannot be verified.
+  - A requirement here would force violating a data license or usage policy.
+When external data cannot be retrieved: report the failure, explain the impact,
+and propose a documented alternative.
+
+9.6 Communication Style
+-----------------------
+Final summaries MUST be honest and concise: what was done, evidence, what
+failed or is uncertain, and what remains. Do not overstate.
+
+================================================================================
+10. FUNCTIONAL REQUIREMENTS
+================================================================================
+(Priority in brackets. FR -> AC mapping is in Section 15.)
+
+FR-01 [MUST]   Configuration: user can configure study area, category, radii,
+               grid size, weights, candidate count via YAML; config validated
+               at startup (5.4).
+FR-02 [MUST]   Data retrieval: retrieve from a documented source or load a
+               valid previously saved snapshot; save raw data + metadata.
+FR-03 [MUST]   Data validation: coordinates, geometries, categories,
+               identifiers, boundary containment.
+FR-04 [MUST]   Data cleaning: normalize categories, deduplicate, report
+               excluded/questionable records (counts in 6.4).
+FR-05 [MUST]   Spatial aggregation: grid generation and assignment of
+               observations to cells in a projected CRS.
+FR-06 [MUST]   Indicators: competition, contextual, accessibility, and
+               eligibility filter (7.2-7.4).
+FR-07 [MUST]   Scoring: reproducible score with documented normalization and
+               weights; component contributions stored.
+FR-08 [MUST]   Ranking: ranked candidates only when sufficiency gates pass;
+               otherwise explicit "insufficient data".
+FR-09 [MUST]   Interactive map: boundary, competitors, eligible/ineligible
+               cells, candidate cells, legend, popups, attribution.
+FR-10 [MUST]   Charts: competitor distribution, score distribution, factor
+               contribution for top candidates.
+FR-11 [MUST]   Export: cleaned dataset and ranking as CSV.
+               [SHOULD] GeoJSON export of cells and candidates.
+FR-12 [MUST]   Report: methodology, results, recommendations, sources,
+               limitations (Section 14.3), built from pipeline outputs.
+FR-13 [MUST]   Reproducibility: dependency file, setup steps, run command(s),
+               fixed seed where applicable.
+FR-14 [MUST]   Failure handling: clear errors/warnings for unavailable
+               sources, failed requests, missing fields, insufficient data.
+FR-15 [SHOULD] Sufficiency labelling at cell level (8.2).
+FR-16 [MUST]   Robustness S1 and S3 (8.3); [SHOULD] S2 and S4.
+FR-17 [SHOULD] Candidate zone grouping of adjacent top cells (7.7a).
+FR-18 [COULD]  CLI entry point (e.g., `python -m src.run_pipeline --config ...`)
+               that runs the full pipeline end-to-end. (Recommended for
+               reproducibility, though the notebook is the primary interface.)
+
+================================================================================
+11. NON-FUNCTIONAL REQUIREMENTS
+================================================================================
+NFR-01 Reproducibility : Same input data + config + environment gives the same
+                         results (fixed seeds; pinned dependency versions).
+NFR-02 Explainability  : Every score traceable to its components and config.
+NFR-03 Maintainability : Modular, readable, docstrings on public functions,
+                         type hints encouraged; student-portfolio quality.
+NFR-04 Performance     : City-scale analysis completes on a typical student
+                         laptop (no GPU), target under about 10 minutes
+                         excluding the initial data download.
+NFR-05 Reliability     : Graceful handling of missing values, incomplete data,
+                         failed requests (retry with backoff, clear messages).
+NFR-06 Data integrity  : Raw data separated from cleaned and output data.
+NFR-07 Responsible use : Comply with licenses, attribution and access policies;
+                         polite API usage with caching.
+NFR-08 Communication   : Maps, charts and report understandable by
+                         non-technical stakeholders (plain language, labelled
+                         legends, units).
+NFR-09 Portability     : Works on Windows, macOS or Linux; no OS-specific
+                         paths; paths via pathlib.
+
+================================================================================
+12. TECHNICAL ARCHITECTURE
+================================================================================
+
+12.1 Recommended Stack
+----------------------
+  Language           : Python 3.10+
+  Data               : pandas, numpy
+  Geospatial         : GeoPandas, Shapely, pyproj; STRtree/sindex or
+                       scikit-learn BallTree for nearest-neighbor queries
+  Data retrieval     : OSMnx and/or Overpass API (verified in Phase 1)
+  Maps               : Folium (or another documented interactive library)
+  Charts             : Matplotlib
+  Notebook           : Jupyter
+  Config             : PyYAML
+  Testing            : pytest
+  Exports            : CSV; GeoJSON where applicable
+  Docs               : Markdown
+Deviation from this stack is allowed if a technical limitation justifies it
+and is logged. A web application is NOT required.
+
+12.2 Processing Pipeline (each stage independently testable)
+------------------------------------------------------------
+  1. Load and validate configuration.
+  2. Obtain and verify the study boundary.
+  3. Retrieve required OSM data (or load snapshot).
+  4. Save raw snapshot + retrieval metadata.
+  5. Validate and clean data.
+  6. Normalize business categories; run data-feasibility checks (5.2).
+  7. Reproject; generate grid; apply eligibility filter.
+  8. Compute competition, context and accessibility indicators.
+  9. Normalize indicators and compute scores.
+ 10. Evaluate sufficiency gates; rank candidates (or report insufficiency).
+ 11. Run robustness checks; assign cell-level sufficiency labels.
+ 12. Generate maps and charts.
+ 13. Export analytical outputs.
+ 14. Generate the market intelligence report from output files.
+
+12.3 Suggested Project Structure
+--------------------------------
+ai-market-opportunity-intelligence/
+|-- README.md
+|-- requirements.txt            (pinned versions)
+|-- .gitignore
+|-- config/
+|   |-- default_config.yaml
+|-- data/
+|   |-- raw/                    (snapshots + retrieval metadata)
+|   |-- processed/
+|   |-- outputs/
+|-- docs/
+|   |-- data_feasibility.md     (Phase 1 deliverable)
+|   |-- methodology.md          (indicator definitions, rationales, directions)
+|   |-- decision_log.md         (Section 9.4)
+|-- notebooks/
+|   |-- market_opportunity_analysis.ipynb
+|-- src/
+|   |-- config.py               (load + validate config)
+|   |-- data_collection.py
+|   |-- data_cleaning.py
+|   |-- spatial_analysis.py     (grid, eligibility, indicators)
+|   |-- opportunity_scoring.py
+|   |-- robustness_checks.py
+|   |-- visualization.py
+|   |-- report_generation.py
+|-- reports/
+|   |-- market_intelligence_report.md
+|-- tests/
+|   |-- test_config.py
+|   |-- test_data_cleaning.py
+|   |-- test_spatial_analysis.py
+|   |-- test_scoring.py
+|   |-- test_robustness.py
+The structure may be simplified if the result stays modular and reproducible.
+.gitignore MUST exclude secrets, caches, large raw dumps and virtual
+environments.
+
+================================================================================
+13. USER WORKFLOW
+================================================================================
+  1. Open the notebook (or run the documented pipeline command).
+  2. Select study area and business category (or use the data-driven selection).
+  3. Configure analysis parameters.
+  4. Run retrieval or load a documented snapshot.
+  5. Review data quality and coverage statistics.
+  6. Run the spatial analysis.
+  7. Inspect the interactive map and charts.
+  8. Compare top candidate areas.
+  9. Review explanations, assumptions, limitations.
+ 10. Export results and read the report.
+No advanced GIS expertise should be needed to interpret primary outputs.
+
+================================================================================
+14. OUTPUT REQUIREMENTS
+================================================================================
+
+14.1 Interactive Map (FR-09)
+----------------------------
+Must include:
+  - Study boundary.
+  - Mapped competitors (distinct marker style).
+  - Grid cells coloured by score for eligible cells; ineligible cells shown in
+    a neutral grey; top candidates highlighted.
+  - Legend; scale; OSM attribution ("(c) OpenStreetMap contributors").
+  - Popups for candidates: ID, score, component values, competitor count,
+    nearest competitor distance, sufficiency label.
+  - A visible note: "Screening result, not a verified profitable location."
+The map MUST NOT imply that any area is a verified or profitable location.
+
+14.2 Analytical Notebook / Dashboard
+------------------------------------
+Present:
+  - Retrieved vs retained record counts (the data funnel).
+  - Data coverage and quality summary (by district where possible).
+  - Spatial distribution of mapped businesses.
+  - Competitor density by cell.
+  - Eligible vs ineligible cell counts.
+  - Score distribution.
+  - Ranked candidate table with indicator-level explanations.
+  - Robustness and sensitivity results.
+
+14.3 Market Intelligence Report (FR-12)
+---------------------------------------
+Required sections:
+  1. Executive Summary
+  2. Business Problem and Research Objective
+  3. Study Area and Business Category (including category selection evidence)
+  4. Data Sources and Collection Date
+  5. Data Quality Assessment
+  6. Methodology (indicators, eligibility, normalization, weights)
+  7. Main Findings
+  8. Ranked Candidate Areas
+  9. Robustness and Sensitivity Results
+ 10. Strategic Implications and Recommendations
+ 11. Assumptions and Limitations
+ 12. Suggested Validation Steps
+ 13. Reproducibility Instructions
+ 14. References and Data Attribution
+Rules: all quantitative findings MUST come from pipeline outputs; explicitly
+label each statement as Observation / Interpretation / Hypothesis where the
+distinction matters; the Executive Summary MUST contain the interpretation
+rule from Section 1.6 in plain language; report language per config.
+
+14.4 Candidate Area Record Format
+---------------------------------
+Each candidate MUST include:
+  - Area: cell/zone ID, centroid coordinates, district.
+  - Opportunity score and rank.
+  - Component values (CG, CS, AC) and their weighted contributions.
+  - Competition: competitor count in radius, nearest competitor distance.
+  - Context: counts of each context feature, accessibility evidence.
+  - Rationale: plain-language reason for the ranking.
+  - Data sufficiency label (HIGH/MEDIUM/LOW) with explanation.
+  - Robustness: share of scenarios in which it stays in the top-N.
+  - Risks: missing information and plausible alternative explanations
+    (e.g., low competition because of low demand or non-commercial zoning).
+  - Next validation step: specific evidence needed before any real decision
+    (e.g., on-site foot-traffic observation, rental price check, zoning check,
+    verification of nearby competitors via other sources, customer survey).
+
+14.5 Exports
+------------
+  - data/outputs/cleaned_businesses.csv      [MUST]
+  - data/outputs/candidate_ranking.csv       [MUST]
+  - data/outputs/cell_scores.csv             [SHOULD] (all cells, all components)
+  - data/outputs/cells.geojson / candidates.geojson [SHOULD]
+  - data/outputs/opportunity_map.html        [MUST]
+  - data/outputs/charts/*.png                [MUST]
+
+================================================================================
+15. ACCEPTANCE CRITERIA
+================================================================================
+The MVP is accepted ONLY when every applicable criterion is VERIFIED (by
+execution, inspection or test). Writing code is not verification.
+
+ID     Criterion                                                    Verifies
+------ ------------------------------------------------------------ --------
+AC-01  Project can be set up from documented instructions on a      FR-13
+       clean environment.
+AC-02  A study boundary is loaded/retrieved, verified (6.5), and    FR-02
+       its source documented.
+AC-03  Real records are retrieved or loaded from a documented       FR-02
+       source; raw snapshot + metadata saved.
+AC-04  A data quality summary with retrieved/removed/merged/        FR-03,04
+       retained counts is produced.
+AC-05  Invalid records do not crash the pipeline; they are          FR-03,14
+       logged and counted.
+AC-06  All distance and area computations use a projected CRS       FR-05,06
+       (verified in code and by a test with a known distance).
+AC-07  Competition, context, accessibility and eligibility          FR-06
+       indicators follow the documented definitions.
+AC-08  The score is reproducible (identical on re-run) and          FR-07
+       component contributions can be inspected per cell.
+AC-09  Ranking occurs only if sufficiency gates pass; otherwise     FR-08
+       "insufficient data" is reported (tested with a failing case).
+AC-10  The interactive map shows boundary, competitors and          FR-09
+       candidates, with legend, attribution and disclaimer.
+AC-11  Ranking table exports to CSV and re-loads without error.     FR-11
+AC-12  The report contains real results from outputs, and           FR-12
+       includes limitations; spot-check at least 5 numbers in the
+       report against the output files.
+AC-13  The report/map never equate a high score with guaranteed     FR-12
+       demand or profitability (checked by reading the text).
+AC-14  Automated tests for cleaning, spatial calculations,          Sec. 16
+       scoring and config pass (pytest output captured).
+AC-15  README covers purpose, method, setup, usage, outputs,        FR-13
+       limitations and OSM attribution.
+AC-16  Robustness checks S1 and S3 are executed and reported.       FR-16
+AC-17  Eligibility filter is applied and eligible/ineligible        FR-06
+       cell counts are reported.
+AC-18  decision_log.md exists and records the category choice,      Sec. 9.4
+       access method and all changed initial values.
+
+================================================================================
+16. TESTING STRATEGY
+================================================================================
+
+16.1 Unit tests (pytest)
+------------------------
+  - Config: invalid weights (do not sum to 1), non-positive radius, missing
+    category mapping -> raises clear error.
+  - Cleaning: invalid coordinates removed; polygon -> representative point;
+    exact-ID duplicate removed; near-duplicate (same name, <= 30 m) merged;
+    unnamed records retained and flagged; category normalization.
+  - Normalization: output within [0,1]; direction correct (more competitors
+    -> lower value); zero-variance indicator excluded.
+  - Scoring: weights sum respected; reweighting when a component is missing;
+    missing component never raises the score.
+  - Ranking: deterministic tie-breaking; only eligible cells ranked.
+  - Export: CSV round-trip retains columns and row count.
+
+16.2 Spatial tests
+------------------
+  - A pair of points with a known real-world distance is measured within a
+    stated tolerance after projection.
+  - Features outside the boundary are flagged.
+  - Distances are non-negative.
+  - Every point is assigned to exactly one cell (or none if outside).
+  - Grid cells have valid geometries; empty cells are handled.
+  - Buffer-based edge handling: a competitor just outside the boundary
+    affects an edge cell's competitor_count as intended.
+
+16.3 Integration test
+---------------------
+Run the full pipeline on a small, labelled, known (synthetic or tiny real)
+dataset with predictable expected output before running on the full city.
+Synthetic data stays inside tests/ and MUST NOT leak into real outputs.
+
+16.4 Analytical validation
+--------------------------
+  - Adding a competitor next to a cell lowers that cell's CG (and score).
+  - Removing a context feature type changes CS as expected.
+  - A missing indicator does not increase a cell's rank.
+  - Top candidates are not trivially artifacts of grid alignment (compare with
+    a shifted grid origin; report the result).
+  - Sanity check: no top candidate lies in a clearly non-built area (inspect
+    the top 10 visually on the map).
+  - [SHOULD] Manual spot-check: compare the top candidates and 3 low-ranked
+    cells against a second source (e.g., satellite imagery or other map
+    services) viewed manually, and record observations as a qualitative
+    check (not as proof).
+
+================================================================================
+17. RISKS AND MITIGATION
+================================================================================
+Risk                                  Impact                     Mitigation
+------------------------------------- -------------------------- -------------------------------
+Incomplete or outdated OSM coverage   Missing/closed businesses  Disclose; sufficiency gates;
+                                                                 manual spot-check
+API downtime or rate limits           Retrieval fails            Cache snapshots; fallback to
+                                                                 regional extract; retry/backoff
+No direct demand data                 Score != demand            Frame as screening; eligibility
+                                                                 filter; validation steps
+"Empty land" false opportunities      Misleading candidates      Eligibility filter (7.3)
+Arbitrary weights                     Misleading ranking         Baseline + scenarios + report
+                                                                 sensitivity
+Poor tag-to-category mapping          Competitors omitted        Inspect tags; document mapping;
+                                                                 test on samples
+Grid boundary artifacts               Results depend on layout   Test grid sizes/shifted origin
+Edge effects at city boundary         Biased edge cells          Boundary buffer; sufficiency
+                                                                 flag F1
+Boundary data wrong                   Wrong study area           Verification step (6.5)
+AI-generated unsupported claims       Credibility loss           Numbers only from outputs;
+                                                                 AC-12 spot-check
+Scope creep                           MVP delayed                MoSCoW priorities; Section 4.3
+                                                                 deferred
+Licensing / attribution mistakes      Compliance issue           ODbL attribution; check
+                                                                 redistribution before commit
+
+================================================================================
+18. DELIVERY PLAN
+================================================================================
+Effort estimates are suggestions for a student working part-time; adjust as
+needed. Each phase has an exit gate; do not start the next phase until the gate
+is verified.
+
+PHASE 1: Research and Data Feasibility  (suggested 2-3 days)
+  Tasks   : Test data access; verify boundary; query candidate categories;
+            apply category selection rule (5.2); inspect building/land-use and
+            road coverage; propose initial parameters from data distribution.
+  Deliver : docs/data_feasibility.md; initial decision_log.md; final config
+            draft.
+  Gate    : Category chosen with evidence, OR stop-and-report per 9.5.
+
+PHASE 2: Data Pipeline  (suggested 3-4 days)
+  Tasks   : Implement retrieval/loading, cleaning, normalization, validation,
+            snapshots; unit tests for cleaning and config.
+  Deliver : data/raw snapshot + metadata; data/processed cleaned dataset; data
+            quality summary; passing tests.
+  Gate    : AC-02, AC-03, AC-04, AC-05 verified.
+
+PHASE 3: Spatial Analysis and Scoring  (suggested 4-5 days)
+  Tasks   : Grid, eligibility filter, indicators, normalization, scoring,
+            sufficiency gates, ranking; spatial and scoring tests.
+  Deliver : Indicator and score tables; ranked candidates (or insufficiency
+            report); passing tests.
+  Gate    : AC-06, AC-07, AC-08, AC-09, AC-17 verified.
+
+PHASE 4: Robustness, Visualization and Reporting  (suggested 4-5 days)
+  Tasks   : Robustness scenarios; cell-level sufficiency labels; interactive
+            map; charts; exports; report generated from outputs; README;
+            final verification pass over all acceptance criteria.
+  Deliver : opportunity_map.html; charts; CSV/GeoJSON exports;
+            reports/market_intelligence_report.md; README.md.
+  Gate    : All AC-01 to AC-18 verified; final summary with evidence.
+
+PHASE 5 (optional, only after acceptance): Enhancements from Section 4.3.
+
+Final deliverable checklist:
+  [ ] All [MUST] functional requirements implemented and verified
+  [ ] All acceptance criteria verified with evidence
+  [ ] pytest passes (output captured)
+  [ ] README, methodology, decision log and report complete
+  [ ] No fabricated data, no secrets, license/attribution in place
+
+================================================================================
+19. GLOSSARY
+================================================================================
+Candidate area      A grid cell (or group of cells) that ranks highly under the
+                    documented scoring method; NOT a verified business address.
+Competition Gap     Normalized measure of low observed competitor coverage.
+Contextual          Normalized measure of presence of category-relevant
+Suitability         supporting features nearby.
+Accessibility       Normalized measure of proximity to major roads (physical
+                    connectivity proxy).
+Eligibility filter  Rule set that excludes cells without evidence of built
+                    environment so empty land is not ranked.
+Data sufficiency    Rule-based label (HIGH/MEDIUM/LOW) describing evidence
+                    strength; separate from the opportunity score.
+Edge effect         Distortion near the study boundary caused by ignoring
+                    features just outside it.
+OSM                 OpenStreetMap, a community-maintained open map database.
+ODbL                Open Database License governing OSM data.
+Projected CRS       Coordinate system in meters (e.g., UTM) suitable for
+                    distance/area calculations.
+Winsorizing         Clipping extreme values to chosen percentiles before
+                    scaling.
+Jaccard overlap     Size of intersection divided by size of union of two sets;
+                    used to compare top-N lists.
+
+================================================================================
+20. OPEN DECISIONS FOR THE PROJECT OWNER
+================================================================================
+The agent should ask about, or log a default for, the following:
+  OD-1  Report language: English (portfolio-oriented) or Bahasa Indonesia?
+        Default if unanswered: English, with an Indonesian executive summary
+        as a [COULD].
+  OD-2  Preferred business category, if the owner has a preference, as long as
+        it passes the Section 5.2 selection rule.
+  OD-3  Whether the project will be published publicly (affects data/redistribution
+        decisions and what is committed).
+  OD-4  Time budget per phase (Section 18 estimates are suggestions).
+  OD-5  Whether candidate zone grouping (FR-17) is wanted in the MVP.
+
+================================================================================
+21. REVISION HISTORY
+================================================================================
+v1.0  Initial specification.
+v1.1  Added: reading instructions and priority tags (MoSCoW) for the AI agent;
+      clarified role of "AI" in the product; data-driven category selection
+      with concrete rule; eligibility filter against empty-land false
+      opportunities; concrete accessibility definition; baseline weights and
+      weight scenarios; boundary buffer for edge effects; initial grid and
+      radius values; concrete sufficiency gates and cell-level labels;
+      robustness metrics and thresholds; explicit missing-indicator handling;
+      OSM/ODbL attribution requirements; agent operating rules (verification,
+      decision log, stop-and-report); FR-to-AC traceability; expanded tests;
+      completed the Delivery Plan with Phase 4 and exit gates; open decisions
+      section.
+================================================================================
+END OF DOCUMENT
+================================================================================
