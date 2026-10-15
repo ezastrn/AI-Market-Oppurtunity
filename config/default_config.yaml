@@ -1,0 +1,98 @@
+study_area:
+  name: Kota Malang
+  country: Indonesia
+  boundary_query: "Kota Malang, East Java, Indonesia"
+  boundary_buffer_m: 1000
+crs:
+  projected: EPSG:32749
+category:
+  name: null  # Selected from real OSM coverage at run time.
+  candidates:
+    cafe:
+      tags:
+        - {amenity: cafe}
+        - {cuisine: coffee_shop}
+      context_features:
+        education: {amenity: [university, college, school]}
+        offices: {office: "*"}
+        coworking: {amenity: coworking_space}
+        retail: {shop: "*"}
+    laundry:
+      tags:
+        - {shop: laundry}
+        - {shop: dry_cleaning}
+      context_features:
+        dormitories: {building: [dormitory, apartments]}
+        education: {amenity: [university, college]}
+    convenience_store:
+      tags:
+        - {shop: convenience}
+      context_features:
+        schools: {amenity: school}
+        clinics: {amenity: [clinic, doctors]}
+        bus_stops: {highway: bus_stop}
+    pharmacy:
+      tags:
+        - {amenity: pharmacy}
+      context_features:
+        clinics: {amenity: [clinic, hospital, doctors]}
+        residential: {building: [residential, apartments]}
+    restaurant:
+      tags:
+        - {amenity: restaurant}
+      context_features:
+        education: {amenity: [university, college, school]}
+        offices: {office: "*"}
+        retail: {shop: "*"}
+grid:
+  cell_size_m: 500
+  sensitivity_sizes_m: [250, 500, 1000]
+  min_inside_fraction: 0.5
+competitor:
+  radius_m: 500
+  sensitivity_radii_m: [300, 500, 1000]
+  nearest_k: 3
+context:
+  radius_m: 500
+accessibility:
+  highway_classes: [primary, secondary, tertiary]
+eligibility:
+  min_building_count: 20
+  min_suitable_landuse_fraction: 0.2
+  road_length_percentile: 25
+  max_excluded_landuse_fraction: 0.5
+  excluded_landuses: [farmland, forest, cemetery, industrial, military, reservoir, water]
+  suitable_landuses: [residential, commercial, retail]
+deduplication:
+  distance_m: 30
+sufficiency:
+  min_competitors: 30
+  min_eligible_cells: 50
+  min_districts: 4
+  local_complete_fraction: 0.5
+scoring:
+  normalization: winsorized_minmax
+  winsor_percentiles: [5, 95]
+  competition_weights:
+    nearest_competitor_m: 0.5
+    competitor_count: 0.5
+  weights:
+    competition_gap: 0.34
+    contextual_suitability: 0.33
+    accessibility: 0.33
+  weight_scenarios:
+    baseline: {competition_gap: 0.34, contextual_suitability: 0.33, accessibility: 0.33}
+    competition_heavy: {competition_gap: 0.50, contextual_suitability: 0.30, accessibility: 0.20}
+    context_heavy: {competition_gap: 0.30, contextual_suitability: 0.50, accessibility: 0.20}
+    no_accessibility: {competition_gap: 0.50, contextual_suitability: 0.50, accessibility: 0.00}
+ranking:
+  top_n: 10
+report:
+  language: en
+random_seed: 42
+retrieval:
+  endpoint: https://overpass-api.de/api/interpreter
+  timeout_seconds: 180
+  max_retries: 3
+  retry_backoff_seconds: 5
+  user_agent: ai-market-opportunity-intelligence/1.0 (portfolio project)
