@@ -44,6 +44,8 @@ Open `notebooks/market_opportunity_analysis.ipynb` and run the cells in order. T
 
 The notebook is deliberately the primary execution interface. It validates the configuration before a live run, documents each stage, and directs results to the standard output paths. The first live retrieval stores immutable snapshots plus retrieval metadata under `data/raw/`. Do not commit full raw OSM extracts unless their redistribution obligations have been reviewed.
 
+The pipeline probes the configured Overpass endpoint and documented fallbacks before downloading. If none is healthy or the PRD's data-sufficiency gates fail, it writes a clear `INSUFFICIENT DATA` summary and report without creating misleading candidate rankings. Retry later or provide a documented, lawful cached snapshot.
+
 ## Outputs
 
 Successful runs write the following generated artefacts to `data/outputs/`:

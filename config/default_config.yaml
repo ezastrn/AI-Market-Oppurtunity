@@ -92,6 +92,9 @@ report:
 random_seed: 42
 retrieval:
   endpoint: https://overpass-api.de/api/interpreter
+  fallback_endpoints:
+    - https://overpass.kumi.systems/api/interpreter
+    - https://overpass.private.coffee/api/interpreter
   timeout_seconds: 180
   max_retries: 3
   retry_backoff_seconds: 5
